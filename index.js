@@ -34,11 +34,12 @@ async function run() {
 
         // api
         // ----------
-
+        //all user see
         app.get('/users', async (req, res) => {
             const users = await usersCollection.find().toArray()
             res.send(users)
         })
+        //user data added
         app.post('/users', async (req, res) => {
             const user = req.body;
             const query = { email: user.email }
@@ -54,7 +55,7 @@ async function run() {
         // user info get
         app.get('/users/about/:email', async (req, res) => {
             const email = req.params.email;
-            const query = { email: email }
+            const query = { email: email.toLowerCase() }
             const result = await usersCollection.findOne(query);
             res.send(result);
         })
@@ -63,21 +64,26 @@ async function run() {
             const id = req.params.id;
             const Data = req.body;
             const filter = { _id: new ObjectId(id) };
-            const updateDoc = {
-                $set: {
-                    // name: "Luis swift",
-                    // email: "luisswift123@gmail.com",
-                    // university: null,
-                    // adress: null
-                    Data
-
-                },
-            };
+            const updateDoc = { $set: Data };
             const result = await usersCollection.updateOne(filter, updateDoc);
             res.send(result);
 
         })
 
+        // -----------status------------
+        // status add 
+        app.post('/status', async (req, res) => {
+
+            const status = req.body;
+            console.log(status);
+            const result = await postCollection.insertOne(status);
+            res.send(result);
+        });
+        // status post 
+        app.get('/status', async (req, res) => {
+            const status = await postCollection.find().toArray()
+            res.send(status);
+        })
 
     } finally {
         // Ensures that the client will close when you finish/error
