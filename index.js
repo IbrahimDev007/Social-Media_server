@@ -86,12 +86,11 @@ async function run() {
         })
 
         //single status get
-        app.get('/status:id', async (req, res) => {
+        app.get('/status/:id', async (req, res) => {
             try {
                 const id = req.params.id;
                 const filter = { _id: new ObjectId(id) };
                 const existingpost = await postCollection.findOne(filter);
-
                 if (existingpost) {
                     res.send(existingpost);
                 } else {
@@ -102,6 +101,24 @@ async function run() {
                 res.status(500).send({ error: 'Internal server error' });
             }
         })
+        // ----add like at status----
+
+
+
+        //---add comment at status ----
+        app.patch('/comment/:id', async (req, res) => {
+            const Id = req.params.id;
+
+            const commentData = req.body;
+            const filter = { _id: new ObjectId(Id) };
+            const update = { $push: { Comment: commentData } };
+            const result = await postCollection.updateOne(filter, update);
+            res.send(result);
+        })
+
+        //--get comment
+
+        //popular status with arggregate path
 
     } finally {
         // Ensures that the client will close when you finish/error
