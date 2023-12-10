@@ -51,8 +51,32 @@ async function run() {
             const result = await usersCollection.insertOne(user);
             res.send(result);
         });
+        // user info get
+        app.get('/users/about/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const result = await usersCollection.findOne(query);
+            res.send(result);
+        })
+        //user about updateDoc
+        app.patch('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const Data = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    // name: "Luis swift",
+                    // email: "luisswift123@gmail.com",
+                    // university: null,
+                    // adress: null
+                    Data
 
+                },
+            };
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.send(result);
 
+        })
 
 
     } finally {
