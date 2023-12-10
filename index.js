@@ -85,6 +85,24 @@ async function run() {
             res.send(status);
         })
 
+        //single status get
+        app.get('/status:id', async (req, res) => {
+            try {
+                const id = req.params.id;
+                const filter = { _id: new ObjectId(id) };
+                const existingpost = await postCollection.findOne(filter);
+
+                if (existingpost) {
+                    res.send(existingpost);
+                } else {
+                    res.status(404).send({ error: 'Post not found' });
+                }
+            } catch (error) {
+                console.error('Error retrieving post:', error);
+                res.status(500).send({ error: 'Internal server error' });
+            }
+        })
+
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
