@@ -7,7 +7,7 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 //mongodb client here 
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId, aggregate } = require('mongodb');
 const { Console } = require('console');
 // const uri = `mongodb://127.0.0.1:27017`;
 const uri = process.env.URI;
@@ -30,7 +30,6 @@ async function run() {
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
         const usersCollection = client.db("SocialApp").collection("UserDb");
         const postCollection = client.db("SocialApp").collection("PostDb");
-        const aboutCollection = client.db("SocialApp").collection("AboutDb");
 
         // api
         // ----------
@@ -108,7 +107,6 @@ async function run() {
         //---add comment at status ----
         app.patch('/comment/:id', async (req, res) => {
             const Id = req.params.id;
-
             const commentData = req.body;
             const filter = { _id: new ObjectId(Id) };
             const update = { $push: { Comment: commentData } };
@@ -116,9 +114,27 @@ async function run() {
             res.send(result);
         })
 
-        //--get comment
 
         //popular status with arggregate path
+        app.get('/popular', async (req, res) => {
+
+            const result = await postCollection.aggregate([
+                {
+                    $addFields: {
+                        totalInteractions: {
+                            $add: [
+                                { $ifNull: [{ $size: { $ifNull: ['$like', []] } }, 0] },
+                                { $ifNull: [{ $size: { $ifNull: ['$Comment', []] } }, 0] }
+                            ]
+                        }
+                    }
+                },
+                { $sort: { totalInteractions: -1 } }
+            ]).toArray();
+            res.send(result);
+
+        });
+
 
     } finally {
         // Ensures that the client will close when you finish/error
