@@ -101,8 +101,29 @@ async function run() {
             }
         })
         // ----add like at status----
+        app.patch('/like/:id', async (req, res) => {
+            const id = req.params.id;
+            const post = await postCollection.findOne({ _id: new ObjectId(id) })
+            const { like, userId } = req.body;
+            console.log(like);
+            let process;
+            if (like) {
+                // If like is true, add the userId to the likes array
+                process = await postCollection.update(
+                    { _id: new ObjectId(id) },
+                    { $push: { like: userId } }
+                );
+            } else {
+                // If like is false, remove the userId from the likes array
+                process = await postCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $pull: { like: userId } }
+                );
+            }
+            console.log(post);
+            res.send(process);
 
-
+        });
 
         //---add comment at status ----
         app.patch('/comment/:id', async (req, res) => {
