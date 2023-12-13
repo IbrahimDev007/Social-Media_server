@@ -103,28 +103,42 @@ async function run() {
         // ----add like at status----
         app.patch('/like/:id', async (req, res) => {
             const id = req.params.id;
-            const post = await postCollection.findOne({ _id: new ObjectId(id) })
+            const post = await postCollection.findOne({ _id: new ObjectId(id) });
             const { like, userId } = req.body;
-            console.log(like);
-            let process;
-            if (like) {
-                // If like is true, add the userId to the likes array
-                process = await postCollection.update(
-                    { _id: new ObjectId(id) },
-                    { $push: { like: userId } }
-                );
-            } else {
-                // If like is false, remove the userId from the likes array
-                process = await postCollection.updateOne(
-                    { _id: new ObjectId(id) },
-                    { $pull: { like: userId } }
-                );
+            console.log(userId, "onLike");
+            try {
+                let process;
+
+                // Check if the 'like' field exists and is not null
+                if (post && post.like !== undefined && post.like !== null) {
+                    if (!like) {
+                        // If like is true, add the userId to the likes array
+                        process = await postCollection.updateOne(
+                            { _id: new ObjectId(id) },
+                            { $push: { like: new ObjectId(userId) } }
+                        );
+                    } else {
+                        // If like is false, remove the userId from the likes array
+                        process = await postCollection.updateOne(
+                            { _id: new ObjectId(id) },
+                            { $pull: { like: new ObjectId(userId) } }
+                        );
+                    }
+                } else {
+                    // If 'like' field is null or undefined, initialize it as an empty array
+                    process = await postCollection.updateOne(
+                        { _id: new ObjectId(id) },
+                        { $set: { like: [userId] } }
+                    );
+                }
+
+                console.log(process);
+                res.send(process);
+            } catch (error) {
+                console.error('Error updating like:', error);
+                res.status(500).send({ error: 'Internal server error' });
             }
-            console.log(post);
-            res.send(process);
-
         });
-
         //---add comment at status ----
         app.patch('/comment/:id', async (req, res) => {
             const Id = req.params.id;
