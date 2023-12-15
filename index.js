@@ -105,7 +105,7 @@ async function run() {
             const id = req.params.id;
             const post = await postCollection.findOne({ _id: new ObjectId(id) });
             const { like, userId } = req.body;
-            console.log(userId, "onLike");
+
             try {
                 let process;
 
@@ -139,6 +139,7 @@ async function run() {
                 res.status(500).send({ error: 'Internal server error' });
             }
         });
+
         //---add comment at status ----
         app.patch('/comment/:id', async (req, res) => {
             const Id = req.params.id;
@@ -153,7 +154,8 @@ async function run() {
         //popular status with arggregate path
         app.get('/popular', async (req, res) => {
 
-            const result = await postCollection.aggregate([
+            //most interection 
+            const mostInteractions = await postCollection.aggregate([
                 {
                     $addFields: {
                         totalInteractions: {
@@ -166,9 +168,28 @@ async function run() {
                 },
                 { $sort: { totalInteractions: -1 } }
             ]).toArray();
-            res.send(result);
+            //most like
+            const mostLikes = await postCollection.aggregate([
+                {
+                    $addFields: {
+                        totalLikes: { $ifNull: [{ $size: { $ifNull: ['$like', []] } }, 0] }
+                    }
+                },
+                { $sort: { totalLikes: -1 } }
+            ]).toArray();
+            //most comment
+            const mostComments = await postCollection.aggregate([
+                {
+                    $addFields: {
+                        totalComments: { $ifNull: [{ $size: { $ifNull: ['$Comment', []] } }, 0] }
+                    }
+                },
+                { $sort: { totalComments: -1 } }
+            ]).toArray();
 
+            res.send({ mostInteractions, mostLikes, mostComments });
         });
+
 
 
     } finally {
