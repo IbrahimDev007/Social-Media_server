@@ -54,7 +54,6 @@ async function run() {
         // user info get
         app.get('/users/about/:email', async (req, res) => {
             const email = req.params.email;
-            console.log(email);
             const query = { email: email.toLowerCase() }
             const result = await usersCollection.findOne(query);
             res.send(result);
@@ -84,6 +83,26 @@ async function run() {
             const status = await postCollection.find().toArray()
             res.send(status);
         })
+
+        //status post  delete
+        app.delete('/status/:id', async (req, res) => {
+            const id = req.params.id;
+            const result = await postCollection.deleteOne({
+                _id:
+                    new ObjectId(id)
+            })
+            res.send(result)
+        });
+
+        //status edit
+        app.patch('/status/:id', async (req, res) => {
+            const id = req.params.id;
+            const Data = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = { $set: Data };
+            const result = await postCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
 
         //single status get
         app.get('/status/:id', async (req, res) => {
